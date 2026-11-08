@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block body %}
+<section class="hero">
+  <h1>Catch brand problems before content goes live.</h1>
+  <p class="lead">Sigil checks content against your own approved guidelines, facts and terminology, explains every issue with the exact source it came from, and leaves every final decision to a person.</p>
+  <p class="muted">Judges and visitors: pick a role below. Nothing to sign up for. Sample brand: a fictional payments company, LumaPay.</p>
+</section>
+<section aria-labelledby="roles">
+  <h2 id="roles">Try it as</h2>
+  <div class="grid4">
+    {% for key, label in roles.items() %}
+    <a class="card role-card" href="{{ url_for('login', role=key) }}">
+      <span class="chip role-{{ key }}">{{ label }}</span>
+      <p>{{ blurbs[key] }}</p>
+      <span class="cta">Enter as {{ label }} &rarr;</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+<section class="card path">
+  <h2>Suggested 2-minute tour</h2>
+  <ol>
+    <li>Enter as <strong>Creator</strong>, choose <em>New review</em> and click <em>Launch post (many issues)</em>, then run the review.</li>
+    <li>Read a finding: what is wrong, why, and the exact guideline or approved fact it cites. Accept a suggested edit, dispute another, then apply the accepted edits as a new version.</li>
+    <li>Resolve the blockers and submit for review.</li>
+    <li>Switch to <strong>Reviewer</strong>: waive or uphold findings with a reason, then approve or request changes. A <strong>Manager</strong> gives final approval.</li>
+    <li>Open the content page again to see the version history, comments and audit log.</li>
+  </ol>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sigil{% endblock %} | Sigil brand governance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="{{ url_for('index') }}"><span class="logo" aria-hidden="true">S</span> Sigil</a>
+    <nav aria-label="Main">
+      {% if me %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('new') }}">New review</a>
+        <a href="{{ url_for('brand') }}">Brand pack</a>
+        <a href="{{ url_for('insights') }}">Insights</a>
+      {% endif %}
+      <a href="{{ url_for('about') }}">AI and privacy</a>
+    </nav>
+    {% if me %}
+    <div class="who">
+      <span class="chip role-{{ me.role }}">{{ ROLE_LABEL[me.role] }}</span>
+      <span class="name">{{ me.name }}</span>
+      <a class="small" href="{{ url_for('logout') }}">Switch role</a>
+    </div>
+    {% endif %}
+  </div>
+</header>
+<main id="main" class="wrap">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}" role="status">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block body %}{% endblock %}
+</main>
+<footer class="wrap foot">
+  <span>Analysis runs on this server. No content is sent to any external AI service.</span>
+  <a href="{{ url_for('about') }}">How it works</a>
+</footer>
+</body>
+</html>

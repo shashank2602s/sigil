@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Insights{% endblock %}
+{% block body %}
+<h1>Insights</h1>
+<p class="muted">A first view of what the review engine finds. Deeper governance analytics (which guideline clauses are unclear or disputed) are planned for Round 3.</p>
+<div class="grid4">
+  <div class="card stat"><span class="num">{{ data.totals.items }}</span><span>content items</span></div>
+  <div class="card stat"><span class="num">{{ data.totals.versions }}</span><span>versions reviewed</span></div>
+  <div class="card stat"><span class="num">{{ data.totals.dropped }}</span><span>findings hidden by the citation validator</span></div>
+</div>
+<div class="cols2">
+  <section class="card"><h2>Findings by category</h2>
+    {% if data.by_cat %}<table><thead><tr><th>Category</th><th>Findings</th></tr></thead><tbody>
+    {% for r in data.by_cat %}<tr><td>{{ r.category|capitalize }}</td><td>{{ r.n }}</td></tr>{% endfor %}</tbody></table>
+    {% else %}<p class="muted">No data yet.</p>{% endif %}
+  </section>
+  <section class="card"><h2>Most frequent checks</h2>
+    {% if data.by_rule %}<table><thead><tr><th>Check</th><th>Category</th><th>Findings</th></tr></thead><tbody>
+    {% for r in data.by_rule %}<tr><td>{{ r.rule }}</td><td>{{ r.category }}</td><td>{{ r.n }}</td></tr>{% endfor %}</tbody></table>
+    {% else %}<p class="muted">No data yet.</p>{% endif %}
+  </section>
+</div>
+<section class="card"><h2>Content by status</h2>
+  <ul class="plain">{% for r in data.by_status %}<li><span class="status st-{{ r.status }}">{{ STATUS_LABEL[r.status] }}</span> {{ r.n }}</li>{% endfor %}</ul>
+</section>
+{% endblock %}

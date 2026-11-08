@@ -1,0 +1,1 @@
+LumaPay is certified PCI DSS Level 1.

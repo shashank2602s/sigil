@@ -1,0 +1,66 @@
+{
+ "promise_guaranteed": [
+  "promise"
+ ],
+ "risk_free": [
+  "promise"
+ ],
+ "superlative_best": [
+  "superlative"
+ ],
+ "fee_wrong": [
+  "figure_mismatch"
+ ],
+ "settle_wrong": [
+  "figure_mismatch"
+ ],
+ "stale_merchants": [
+  "figure_stale"
+ ],
+ "unsourced_pct": [
+  "figure_unsourced"
+ ],
+ "retired_name": [
+  "terminology"
+ ],
+ "signup_term": [
+  "terminology"
+ ],
+ "brand_case": [
+  "terminology"
+ ],
+ "tone_slang": [
+  "tone_word"
+ ],
+ "exclaim": [
+  "tone_exclaim"
+ ],
+ "caps": [
+  "tone_caps"
+ ],
+ "long_sentence": [
+  "readability"
+ ],
+ "disclaimer_missing": [
+  "disclaimer"
+ ],
+ "click_here": [
+  "a11y_link"
+ ],
+ "md_image": [
+  "a11y_image"
+ ],
+ "clean_1": [],
+ "clean_2": [],
+ "clean_3": [],
+ "clean_4": [],
+ "clean_5": [],
+ "clean_6": [],
+ "clean_7": [],
+ "comparison": [
+  "comparison"
+ ],
+ "implicit_promise": [
+  "promise"
+ ]
+}

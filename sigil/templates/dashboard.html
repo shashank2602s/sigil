@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% macro table(rows) %}
+<div class="tablewrap"><table>
+  <thead><tr><th>Title</th><th>Creator</th><th>Channel</th><th>Status</th><th>Version</th><th>Needs attention</th></tr></thead>
+  <tbody>
+  {% for i in rows %}
+  <tr>
+    <td><a href="{{ url_for('content', cid=i.id) }}">{{ i.title }}</a></td>
+    <td>{{ i.creator }}</td><td>{{ i.channel }}</td>
+    <td><span class="status st-{{ i.status }}">{{ i.status_label }}</span></td>
+    <td>v{{ i.version }}</td>
+    <td>
+      {% if i.blockers %}<span class="badge sev-blocker">{{ i.blockers }} blocker{{ 's' if i.blockers != 1 }}</span>{% endif %}
+      {% if i.disputed %}<span class="badge b-disputed">{{ i.disputed }} disputed</span>{% endif %}
+      {% if not i.blockers and not i.disputed %}<span class="muted">{{ i.open_findings }} open finding{{ 's' if i.open_findings != 1 }}</span>{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endmacro %}
+{% block body %}
+<div class="head">
+  <h1>Dashboard</h1>
+  <a class="btn primary" href="{{ url_for('new') }}">New review</a>
+</div>
+{% if queue %}
+<section><h2>Waiting for your review</h2>{{ table(queue) }}</section>
+{% endif %}
+<section>
+  <h2>{{ 'Your content' if me.role == 'creator' else 'All content' }}</h2>
+  {% if items %}{{ table(items) }}
+  {% elif not queue %}<p class="muted">Nothing here yet. <a href="{{ url_for('new') }}">Run your first review</a>.</p>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review report: {{ c.title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body class="report"><main class="wrap">
+<p class="noprint"><a href="{{ url_for('content', cid=c.id) }}">&larr; Back</a> &middot; <button class="btn small" onclick="window.print()">Print or save as PDF</button></p>
+<h1>Review report: {{ c.title }}</h1>
+<p>Status: <strong>{{ status_label }}</strong> &middot; Creator: {{ creator_name }} &middot; Channel: {{ c.channel }} &middot; Version {{ v.number }}</p>
+{% if c.intent %}<p>Intent: {{ c.intent }}</p>{% endif %}
+<p class="muted">AI-use disclosure: findings were produced by rule-based and TF-IDF retrieval checks running on the Sigil server. No external AI service was used. Decisions below were made by the named people.</p>
+<h2>Content</h2><div class="card doc">{{ v.body }}</div>
+<h2>Findings ({{ findings|length }})</h2>
+<table><thead><tr><th>Severity</th><th>Finding</th><th>Source cited</th><th>Decision</th></tr></thead><tbody>
+{% for f in findings %}<tr><td>{{ f.severity }}</td><td>{{ f.message }}</td><td>{{ f.source_label }}: &ldquo;{{ f.source_quote }}&rdquo;</td>
+<td>{{ f.state }}{% if f.decider %} by {{ f.decider }}{% endif %}{% if f.decision_reason %}: {{ f.decision_reason }}{% endif %}</td></tr>{% endfor %}
+</tbody></table>
+<h2>Audit trail</h2>
+<ul class="plain">{% for a in log %}<li>{{ a.created_at }} UTC &middot; {{ a.name or 'System' }}: {{ a.action }}{% if a.detail %} ({{ a.detail }}){% endif %}</li>{% endfor %}</ul>
+</main></body></html>

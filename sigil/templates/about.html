@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}AI and privacy{% endblock %}
+{% block body %}
+<h1>How Sigil works, and where your content goes</h1>
+<section class="card">
+  <h2>No external AI service</h2>
+  <p>Sigil does <strong>not</strong> send your content to any external AI or third-party API. Every check runs on this server, inside the application. This is a deliberate choice for confidential brand material.</p>
+</section>
+<section class="card">
+  <h2>What actually produces a finding</h2>
+  <ul>
+    <li><strong>Rules:</strong> terminology, banned and retired terms, off-brand tone words, exclamation and all-caps limits, sentence length, prohibited promises, required disclaimers, and basic accessibility checks (link text, image alt text).</li>
+    <li><strong>Retrieval:</strong> a TF-IDF similarity search (scikit-learn, running locally) matches each sentence that contains a figure to the closest approved fact, then compares the numbers. It also flags facts that have expired.</li>
+    <li><strong>Citation validator:</strong> every finding must cite a guideline, approved fact or terminology entry, and the quoted text must exist in that source. Findings that fail this check are hidden and counted.</li>
+    <li><strong>Intent check:</strong> suggested edits are compared with the intent you state, and a warning is shown if an edit changes words that relate to it.</li>
+  </ul>
+  <p class="muted">These are rule-based and statistical methods, not a language model. They can miss subtle tone or meaning problems, and some flags will be wrong. That is why a person always decides.</p>
+</section>
+<section class="card">
+  <h2>Human control</h2>
+  <ul>
+    <li>Nothing is edited, submitted or approved automatically. Suggested edits are only applied when the creator accepts them and presses the apply button.</li>
+    <li>Blockers that the creator rejects or disputes must be waived or upheld by a reviewer, with a written reason, before approval.</li>
+    <li>Claims and facts are always routed to a human reviewer, and low-confidence findings are labelled.</li>
+    <li>Every decision is recorded in the audit log with who, when and why.</li>
+  </ul>
+</section>
+<section class="card">
+  <h2>Data and demo notice</h2>
+  <p>This is a hackathon demo. The brand pack, people and content are fictional samples. Data is stored in a local SQLite database on the server and may be reset at any time. Do not enter real confidential information. Access is by demo role only; there is no real authentication in this build.</p>
+  <p class="muted small">Development disclosure: this project was built with AI coding assistance (Claude). Libraries used: Flask, scikit-learn, python-docx, pdfplumber, Jinja2.</p>
+</section>
+{% endblock %}

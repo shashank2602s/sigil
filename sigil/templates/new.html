@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}New review{% endblock %}
+{% block body %}
+<h1>New review</h1>
+<p class="muted">Paste text or upload a .docx, .pdf, .txt or .md file. Nothing is published and nothing is changed without your decision.</p>
+<div class="samples" role="group" aria-label="Sample content">
+  <span>Try a sample:</span>
+  {% for k, s in samples.items() %}<a class="btn small" href="{{ url_for('new', sample=k) }}">{{ s[0] }}</a>{% endfor %}
+</div>
+<form method="post" enctype="multipart/form-data" class="card form">
+  <div class="row2">
+    <label>Title
+      <input name="title" maxlength="120" value="{{ form.get('title', '') }}" placeholder="e.g. Diwali campaign post">
+    </label>
+    <label>Channel
+      <select name="channel">
+        {% for ch in ['social', 'email', 'website', 'blog', 'deck', 'other'] %}
+        <option value="{{ ch }}" {{ 'selected' if form.get('channel') == ch }}>{{ ch|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+  <label>Intent: what should this content achieve?
+    <input name="intent" maxlength="300" value="{{ form.get('intent', '') }}" placeholder="e.g. Announce the new feature in an upbeat tone">
+    <small>Suggested edits are checked against this so fixes do not remove what you mean to say.</small>
+  </label>
+  <label>Content
+    <textarea name="text" rows="10" maxlength="20000" placeholder="Paste your draft here">{{ form.get('text', '') }}</textarea>
+  </label>
+  <label>Or upload a file
+    <input type="file" name="file" accept=".txt,.md,.docx,.pdf">
+    <small>If you upload a file, it is used instead of the pasted text.</small>
+  </label>
+  <button class="btn primary" type="submit">Run review</button>
+</form>
+{% endblock %}

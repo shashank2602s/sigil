@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Brand pack{% endblock %}
+{% block body %}
+<div class="head"><h1>Brand pack</h1></div>
+<p class="muted">The approved source material every finding is checked against. {% if is_admin %}As Admin you can add and remove items.{% else %}Only an Admin can change it.{% endif %}</p>
+
+<section id="guidelines" class="card">
+  <h2>Guidelines</h2>
+  {% for g in guidelines %}
+  <article id="guideline-{{ g.id }}" class="item">
+    <h3>{{ g.title }} {% if g.key %}<span class="badge cat">core rule source</span>{% endif %}</h3>
+    <p>{{ g.text }}</p>
+    {% if is_admin and not g.key %}<form method="post" action="{{ url_for('delete_item', kind='guideline', rid=g.id) }}"><button class="btn small ghost">Remove</button></form>{% endif %}
+  </article>
+  {% endfor %}
+  {% if is_admin %}
+  <details><summary>Import a guideline</summary>
+    <form method="post" action="{{ url_for('add_guideline') }}" enctype="multipart/form-data" class="form">
+      <label>Title <input name="title" maxlength="120"></label>
+      <label>Text <textarea name="text" rows="4"></textarea></label>
+      <label>Or upload (.docx, .pdf, .txt, .md) <input type="file" name="file" accept=".txt,.md,.docx,.pdf"></label>
+      <button class="btn">Import</button>
+      <small>Imported guidelines are stored and can be cited. Automated checks are driven by the terminology list, approved facts and the core rules above.</small>
+    </form>
+  </details>
+  {% endif %}
+</section>
+
+<section id="facts" class="card">
+  <h2>Approved facts</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Fact</th><th>Source</th><th>Valid until</th><th>Status</th>{% if is_admin %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for f in facts %}
+    <tr id="fact-{{ f.id }}">
+      <td>{{ f.statement }}</td><td>{{ f.source }}</td>
+      <td>{{ f.valid_until or 'no expiry' }} {% if f.expired %}<span class="badge sev-warning">expired</span>{% endif %}</td>
+      <td>{{ f.status|capitalize }}</td>
+      {% if is_admin %}<td class="rowbtns">
+        <form method="post" action="{{ url_for('toggle_fact', rid=f.id) }}"><button class="btn small ghost">{{ 'Retire' if f.status == 'approved' else 'Reinstate' }}</button></form>
+        <form method="post" action="{{ url_for('delete_item', kind='fact', rid=f.id) }}"><button class="btn small ghost">Delete</button></form></td>{% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% if is_admin %}
+  <details><summary>Add an approved fact</summary>
+    <form method="post" action="{{ url_for('add_fact') }}" class="form">
+      <label>Statement <input name="statement" maxlength="300" required></label>
+      <div class="row2"><label>Source <input name="source" maxlength="120"></label>
+      <label>Valid until <input type="date" name="valid_until"></label></div>
+      <button class="btn">Add fact</button>
+    </form>
+  </details>
+  {% endif %}
+</section>
+
+<section id="terms" class="card">
+  <h2>Terminology</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Type</th><th>Avoid</th><th>Use instead</th><th>Reason (quoted in findings)</th>{% if is_admin %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for t in terms %}
+    <tr id="term-{{ t.id }}"><td>{{ t.kind }}</td><td>{{ t.avoid }}</td><td>{{ t.preferred or '' }}</td><td>{{ t.reason }}</td>
+      {% if is_admin %}<td><form method="post" action="{{ url_for('delete_item', kind='term', rid=t.id) }}"><button class="btn small ghost">Delete</button></form></td>{% endif %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% if is_admin %}
+  <details><summary>Add a terminology rule</summary>
+    <form method="post" action="{{ url_for('add_term') }}" class="form">
+      <div class="row2">
+        <label>Type <select name="kind"><option value="preferred">Preferred wording</option><option value="retired">Retired term</option><option value="banned">Banned word</option><option value="tone">Off-brand tone word</option></select></label>
+        <label>Words to avoid (comma separated) <input name="avoid" maxlength="200" required></label>
+      </div>
+      <div class="row2">
+        <label>Use instead <input name="preferred" maxlength="100"></label>
+        <label>Reason (shown as the cited source) <input name="reason" maxlength="200" required></label>
+      </div>
+      <button class="btn">Add rule</button>
+    </form>
+  </details>
+  {% endif %}
+</section>
+
+<section id="assets" class="card">
+  <h2>Reusable assets</h2>
+  <ul class="plain assets">
+    {% for a in assets %}<li>
+      {% if a.type == 'palette' %}<span class="swatch" style="background: {{ a.value }}" aria-hidden="true"></span>{% endif %}
+      <strong>{{ a.name }}</strong> <span class="muted">{{ a.type }}: {{ a.value }}</span></li>{% endfor %}
+  </ul>
+  <p class="muted small">Assets are stored for reference. Automated visual checks against them are planned for Round 3.</p>
+</section>
+{% endblock %}

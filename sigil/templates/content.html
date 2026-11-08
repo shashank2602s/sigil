@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ c.title }}{% endblock %}
+{% macro finding_card(f) %}
+<article class="finding sev-{{ f.severity }} state-{{ f.state }}" id="f{{ f.id }}">
+  <header>
+    <span class="badge sev-{{ f.severity }}">{{ f.severity|capitalize }}</span>
+    <span class="badge cat">{{ f.category|capitalize }}</span>
+    <span class="badge conf" title="How sure the engine is. Low confidence goes to a human.">{{ f.confidence|pct }} confidence</span>
+    {% if f.needs_human %}<span class="badge human">Needs human judgement</span>{% endif %}
+    {% if f.state != 'open' %}<span class="badge b-{{ f.state }}">{{ f.state|capitalize }}</span>{% endif %}
+  </header>
+  <p class="msg">{{ f.message }}</p>
+  <p class="why"><strong>Why:</strong> {{ f.why }}</p>
+  <blockquote class="source">
+    <strong>{{ f.source_label }}</strong>
+    <q>{{ f.source_quote }}</q>
+    <a href="{{ url_for('brand') }}#{{ f.source_type }}-{{ f.source_id }}">View source</a>
+  </blockquote>
+  {% if f.replacement is not none %}
+    <p class="sugg"><strong>Suggested edit:</strong>
+      {% if f.original %}<del>{{ f.original }}</del> &rarr; <ins>{{ f.replacement.strip() }}</ins>
+      {% else %}add at the end: <ins>{{ f.replacement.strip() }}</ins>{% endif %}</p>
+  {% elif f.advice %}<p class="sugg"><strong>Suggestion:</strong> {{ f.advice }}</p>{% endif %}
+  {% if f.intent_conflict %}<p class="warnline">Intent check: {{ f.intent_conflict }}</p>{% endif %}
+  {% if f.state != 'open' and f.decider %}
+    <p class="decision">{{ f.state|capitalize }} by {{ f.decider }}{% if f.decision_reason %}: &ldquo;{{ f.decision_reason }}&rdquo;{% endif %}</p>
+  {% endif %}
+  {% if can_edit or can_review %}
+  <form method="post" class="actions">
+    <label class="sr" for="r{{ f.id }}">Reason (required for dispute, waive and uphold)</label>
+    <input id="r{{ f.id }}" name="reason" maxlength="500" placeholder="Reason (needed to dispute, waive or uphold)">
+    <div class="btns">
+    {% if can_edit %}
+      <button class="btn small" formaction="{{ url_for('finding_action', fid=f.id, action='accept') }}" {{ 'disabled' if f.replacement is none }}>Accept edit</button>
+      <button class="btn small" formaction="{{ url_for('finding_action', fid=f.id, action='reject') }}">Reject</button>
+      <button class="btn small" formaction="{{ url_for('finding_action', fid=f.id, action='dispute') }}">Dispute</button>
+      {% if f.state != 'open' %}<button class="btn small ghost" formaction="{{ url_for('finding_action', fid=f.id, action='reopen') }}">Undo</button>{% endif %}
+    {% endif %}
+    {% if can_review %}
+      <button class="btn small" formaction="{{ url_for('finding_action', fid=f.id, action='override') }}">Waive finding</button>
+      <button class="btn small" formaction="{{ url_for('finding_action', fid=f.id, action='uphold') }}">Uphold finding</button>
+    {% endif %}
+    </div>
+  </form>
+  {% endif %}
+</article>
+{% endmacro %}
+{% block body %}
+<div class="head">
+  <div>
+    <h1>{{ c.title }}</h1>
+    <p class="muted">{{ c.channel|capitalize }} &middot; by {{ creator_name }} &middot; <span class="status st-{{ c.status }}">{{ status_label }}</span>
+      &middot; <a href="{{ url_for('report', cid=c.id) }}">Printable review report</a></p>
+    {% if c.intent %}<p><strong>Intent:</strong> {{ c.intent }}</p>{% endif %}
+  </div>
+  <nav class="versions" aria-label="Versions">
+    {% for ver in versions %}<a class="vtab {{ 'on' if ver.number == v.number }}" href="{{ url_for('content', cid=c.id, v=ver.number) }}">v{{ ver.number }}</a>{% endfor %}
+  </nav>
+</div>
+
+{% if not is_latest %}<div class="flash info">You are viewing an older version (read-only). <a href="{{ url_for('content', cid=c.id) }}">Go to the latest</a>.</div>{% endif %}
+
+<div class="summary" role="list">
+  <span role="listitem" class="badge sev-blocker">{{ counts.blocker }} blocker{{ 's' if counts.blocker != 1 }}</span>
+  <span role="listitem" class="badge sev-warning">{{ counts.warning }} warning{{ 's' if counts.warning != 1 }}</span>
+  <span role="listitem" class="badge sev-note">{{ counts.note }} note{{ 's' if counts.note != 1 }}</span>
+  <span role="listitem" class="badge human">{{ counts.human }} for human judgement</span>
+  <span role="listitem" class="muted small" title="Findings the engine produced but could not back with a verifiable source were hidden.">{{ v.dropped }} hidden by the citation validator</span>
+</div>
+
+<div class="cols">
+  <section class="left" aria-labelledby="txt">
+    <h2 id="txt">Content (v{{ v.number }})</h2>
+    <div class="card doc">{{ body_html }}</div>
+    {% if can_edit %}
+    <div class="card">
+      <form method="post" action="{{ url_for('apply_edits', cid=c.id) }}" class="inline">
+        <button class="btn" {{ 'disabled' if not counts.accepted }}>Apply {{ counts.accepted }} accepted edit{{ 's' if counts.accepted != 1 }} as a new version</button>
+        <span class="muted small">Edits are only applied when you press this.</span>
+      </form>
+      <details>
+        <summary>Edit the text yourself</summary>
+        <form method="post" action="{{ url_for('edit', cid=c.id) }}">
+          <label class="sr" for="edit-text">Edit text</label>
+          <textarea id="edit-text" name="text" rows="9">{{ v.body }}</textarea>
+          <button class="btn">Save as new version and re-run review</button>
+        </form>
+      </details>
+      <form method="post" action="{{ url_for('submit', cid=c.id) }}" class="submitrow">
+        <button class="btn primary">Submit for review</button>
+        <span class="muted small">Blockers must be fixed, or rejected or disputed with a reason, first.</span>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if can_review %}
+    <div class="card review">
+      <h3>Your review</h3>
+      {% if blockers_left %}<p class="warnline">{{ blockers_left|length }} finding(s) still block approval. Waive or uphold each with a reason, or request changes.</p>{% endif %}
+      <form method="post" action="{{ url_for('decision', cid=c.id) }}">
+        <label>Comment (required when requesting changes)
+          <textarea name="comment" rows="3" maxlength="1000"></textarea>
+        </label>
+        <div class="btns">
+          <button class="btn primary" name="decision" value="approve">{{ 'Give final approval' if me.role == 'manager' else 'Approve (manager signs off)' }}</button>
+          <button class="btn" name="decision" value="changes">Request changes</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="right" aria-labelledby="fnd">
+    <h2 id="fnd">Findings ({{ findings|length }})</h2>
+    {% if not findings %}<div class="card ok">No issues found against the approved guidelines, facts and terminology.</div>{% endif %}
+    {% for f in findings %}{{ finding_card(f) }}{% endfor %}
+  </section>
+</div>
+
+<section class="card" aria-labelledby="hist">
+  <h2 id="hist">Revision history</h2>
+  <ul class="plain">
+    {% for ver in versions|reverse %}
+    <li><strong>v{{ ver.number }}</strong> &middot; {{ ver.author }} &middot; {{ ver.created_at }} UTC &middot; {{ ver.note }}</li>
+    {% endfor %}
+  </ul>
+  {% if diff %}<h3>Changes from v{{ v.number - 1 }} to v{{ v.number }}</h3><div class="doc diff">{{ diff }}</div>{% endif %}
+</section>
+
+<div class="cols2">
+  <section class="card" aria-labelledby="cmt">
+    <h2 id="cmt">Comments</h2>
+    {% for cm in comments %}<p class="comment"><strong>{{ cm.name }}</strong> <span class="chip role-{{ cm.role }}">{{ ROLE_LABEL[cm.role] }}</span> <span class="muted small">{{ cm.created_at }} UTC</span><br>{{ cm.body }}</p>
+    {% else %}<p class="muted">No comments yet.</p>{% endfor %}
+    <form method="post" action="{{ url_for('comment', cid=c.id) }}">
+      <label class="sr" for="cbody">Add a comment</label>
+      <textarea id="cbody" name="body" rows="2" maxlength="1000" placeholder="Add a comment"></textarea>
+      <button class="btn small">Post comment</button>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="aud">
+    <h2 id="aud">Audit log</h2>
+    <ul class="plain audit">
+      {% for a in log %}<li><span class="muted small">{{ a.created_at }}</span> <strong>{{ a.name or 'System' }}</strong>: {{ a.action }}{% if a.detail %} <span class="muted">({{ a.detail }})</span>{% endif %}</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
